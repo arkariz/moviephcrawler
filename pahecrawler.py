@@ -42,7 +42,7 @@ def startSpider():
     else:
         items = []
         for movie in movie_container:
-            original_title = movie.a['original-title'].split(")", 1)
+            original_title = movie.a['original-title'].split("(", 1)
             title = original_title[0]
             item = {
                 'title': title,
