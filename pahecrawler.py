@@ -23,7 +23,7 @@ def getNewestMovie():
     if r.status_code == 204:
         return 'empty'
     else:
-        return r.json()['title']
+        return r.json()['url']
 
 
 def startSpider():
@@ -37,13 +37,15 @@ def startSpider():
     for movie in reversed(cat_box.find_all('div', {'class': 'post-thumbnail'})):
         movie_container.append(movie)
 
-    if movie_container[-1].a['original-title'] == getNewestMovie():
+    if movie_container[-1].a['href'] == getNewestMovie():
         print("list already up to date")
     else:
         items = []
         for movie in movie_container:
+            original_title = movie.a['original-title'].split(")", 1)
+            title = original_title[0]
             item = {
-                'title': movie.a['original-title'],
+                'title': title,
                 'url': movie.a['href'],
                 'image': movie.img['src']
             }
@@ -56,7 +58,7 @@ def startSpider():
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.configure(timezone=get_localzone())
-    scheduler.add_job(startSpider, 'interval', hours=6)
+    scheduler.add_job(startSpider, 'interval', minutes=1)
     scheduler.start()
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
