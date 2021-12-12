@@ -57,7 +57,7 @@ def startSpider():
             }
             print('added: ', item['title'])
 
-            # requests.post('http://127.0.0.1:8000/refresh_movie/', data=item)
+            # requests.post('http://127.0.0.1:8000/refresh_movie/', data=item
             requests.post('http://moviephrestfullapi.herokuapp.com/refresh_movie/', data=item)
 
             items.append(item)
