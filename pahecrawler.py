@@ -1,10 +1,12 @@
 import os
+import time
+
 import requests
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.by import By
+
 
 def setDriver():
     chrome_options = webdriver.ChromeOptions()
@@ -13,7 +15,7 @@ def setDriver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-    # return webdriver.Chrome(executable_path="D:\GitHub\moviephRestfullApi\movieph\moviephApi\chromedriver.exe",
+    # return webdriver.Chrome(executable_path="utils/chromedriver.exe",
     #                         options=chrome_options)
 
 
@@ -25,13 +27,10 @@ def getNewestMovie():
     else:
         return r.json()['url']
 
+
 def startSpider():
     driver = setDriver()
-    driver.get('https://103.194.171.205/')  # Accessing Web
-    driver.implicitly_wait(3)
-
-    add = driver.find_element(by=By.XPATH, value='//*[@id="baner_close"]')
-    add.click()
+    driver.get('http://95.168.173.89/')  # Accessing Web
 
     html = driver.page_source  # Get HTML
     soup = BeautifulSoup(html, 'html.parser')
@@ -67,3 +66,13 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     scheduler.add_job(startSpider, 'interval', minutes=1)
     scheduler.start()
+
+    print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+
+    try:
+        # This is here to simulate application activity (which keeps the main thread alive).
+        while True:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        # Not strictly necessary if daemonic mode is enabled but should be done if possible
+        scheduler.shutdown()
