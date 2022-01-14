@@ -40,14 +40,13 @@ def startSpider():
     for movie in reversed(cat_box.find_all('div', {'class': 'gmr-item-modulepost'})):
         movie_container.append(movie)
 
-    if movie_container[-1].a['href'] == getNewestMovie():
-        print("list already up to date")
-    else:
+    if getNewestMovie() == "empty":
         items = []
         for movie in movie_container:
             original_title = movie.a['title'].split(":", 1)
             title = original_title[1]
             star = movie.find("div", {'class': 'gmr-rating-item'}).text
+            # image = getImageUrl(title)
             item = {
                 'title': title,
                 'url': movie.a['href'],
@@ -60,6 +59,23 @@ def startSpider():
             requests.post('http://moviephrestfullapi.herokuapp.com/refresh_movie/', data=item)
 
             items.append(item)
+
+    elif movie_container[-1].a['href'] != getNewestMovie():
+        movie = movie_container[-1]
+        original_title = movie.a['title'].split(":", 1)
+        title = original_title[1]
+        star = movie.find("div", {'class': 'gmr-rating-item'}).text
+        item = {
+            'title': title,
+            'url': movie.a['href'],
+            'image': movie.img['src'],
+            'star': star
+        }
+        print('added: ', item['title'])
+        requests.post('http://moviephrestfullapi.herokuapp.com/refresh_movie/', data=item)
+
+    elif movie_container[-1].a['href'] == getNewestMovie():
+        print("list already up to date")
 
 
 if __name__ == "__main__":
