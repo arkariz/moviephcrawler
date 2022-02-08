@@ -76,7 +76,7 @@ def startSpider():
 
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
-    scheduler.add_job(startSpider, 'interval', minutes=1)
+    scheduler.add_job(startSpider, 'interval', hours=12)
     scheduler.start()
 
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
