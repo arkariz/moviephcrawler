@@ -6,6 +6,8 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 
 
 def setDriver():
@@ -15,7 +17,7 @@ def setDriver():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-    # return webdriver.Chrome(executable_path="utils/chromedriver.exe",
+    # return webdriver.Chrome(executable_path="utils/chromedriver97.exe",
     #                         options=chrome_options)
 
 
@@ -31,6 +33,8 @@ def getNewestMovie():
 def startSpider():
     driver = setDriver()
     driver.get('http://95.168.173.89/')  # Accessing Web
+    WebDriverWait(driver, 4)
+    driver.find_element(By.CLASS_NAME, "sgpb-popup-close-button-6").click()
 
     html = driver.page_source  # Get HTML
     soup = BeautifulSoup(html, 'html.parser')
@@ -43,28 +47,36 @@ def startSpider():
     if movie_container[-1].a['href'] == getNewestMovie():
         print("list already up to date")
     else:
-        items = []
         for movie in movie_container:
-            original_title = movie.a['title'].split(":", 1)
-            title = original_title[1]
+            original_title = movie.a['title'].split("(", 1)
+            title = original_title[0].split(":", 1)[1][1:-1]
+            year = original_title[1].replace(")", "")
             star = movie.find("div", {'class': 'gmr-rating-item'}).text
+
+            r = requests.get('https://api.gdriveplayer.us/v1/movie/search?title={}&year={}'.format(title, year), headers={'accept': 'application/json'})
+            gdplayer = r.json()[0]
+            url = "http://database.gdriveplayer.us/player.php?imdb={}".format(gdplayer['imdb'])
+
             item = {
-                'title': title,
+                'title': gdplayer["title"],
+                'year': gdplayer["year"],
                 'url': movie.a['href'],
-                'image': movie.img['src'],
-                'star': star
+                'image': gdplayer["poster"],
+                'star': star,
+                'imdb': gdplayer["imdb"],
+                'genre': gdplayer["genre"].split(",", 1)[0] if gdplayer["genre"] else "empty",
+                'duration': gdplayer["runtime"] if gdplayer["runtime"] else "empty",
+                'video_url': url
             }
-            print('added: ', item['title'])
 
-            # requests.post('http://127.0.0.1:8000/refresh_movie/', data=item
+            # requests.post('http://127.0.0.1:8000/refresh_movie/', data=item)
+            print('added: ', item['title'], item['year'], item['image'], item['star'], item['imdb'], item['genre'], item['duration'], item['video_url'])
             requests.post('http://moviephrestfullapi.herokuapp.com/refresh_movie/', data=item)
-
-            items.append(item)
 
 
 if __name__ == "__main__":
     scheduler = BackgroundScheduler()
-    scheduler.add_job(startSpider, 'interval', hours=12)
+    scheduler.add_job(startSpider, 'interval', minutes=1)
     scheduler.start()
 
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
