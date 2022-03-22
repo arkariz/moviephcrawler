@@ -16,9 +16,9 @@ def setDriver():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-    return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-    # return webdriver.Chrome(executable_path="utils/chromedriver97.exe",
-    #                         options=chrome_options)
+    # return webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+    return webdriver.Chrome(executable_path="utils/chromedriver97.exe",
+                            options=chrome_options)
 
 
 def getNewestMovie():
@@ -44,7 +44,7 @@ def startSpider():
     for movie in reversed(cat_box.find_all('div', {'class': 'gmr-item-modulepost'})):
         movie_container.append(movie)
 
-    if movie_container[-1].a['href'] == getNewestMovie():
+    if False:#movie_container[-1].a['href'] == getNewestMovie():
         print("list already up to date")
     else:
         for movie in movie_container:
@@ -75,16 +75,17 @@ def startSpider():
 
 
 if __name__ == "__main__":
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(startSpider, 'interval', minutes=1)
-    scheduler.start()
-
-    print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
-
-    try:
-        # This is here to simulate application activity (which keeps the main thread alive).
-        while True:
-            time.sleep(10000)
-    except (KeyboardInterrupt, SystemExit):
-        # Not strictly necessary if daemonic mode is enabled but should be done if possible
-        scheduler.shutdown()
+    startSpider()
+    # scheduler = BackgroundScheduler()
+    # scheduler.add_job(startSpider, 'interval', minutes=1)
+    # scheduler.start()
+    #
+    # print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+    #
+    # try:
+    #     # This is here to simulate application activity (which keeps the main thread alive).
+    #     while True:
+    #         time.sleep(10000)
+    # except (KeyboardInterrupt, SystemExit):
+    #     # Not strictly necessary if daemonic mode is enabled but should be done if possible
+    #     scheduler.shutdown()
